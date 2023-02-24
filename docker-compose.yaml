@@ -21,6 +21,18 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.3.0
+    container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - broker
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker:29092"
+      SCHEMA_REGISTRY_LISTENERS: "http://localhost:8081"
+      SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
   debezium:
     image: debezium/connect:1.6
     container_name: debezium
@@ -40,6 +52,7 @@ services:
       CONNECT_OFFSET_STORAGE_TOPIC: debezium_connect_offsets
       CONNECT_STATUS_STORAGE_TOPIC: debezium_connect_status
       CONNECT_PLUGIN_PATH: /kafka/connect
+      VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
     volumes:
       - ./connectors/debezium-connector-postgres:/kafka/connect/debezium-connector-postgres
     ports:
